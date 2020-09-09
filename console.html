@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>HQ | BetaLabs.io</title>
+        <meta name="description" content="Welcome to BetaLabs.io!">
+        <meta name="author" content="MrRawbit@BetaLabs.io">
+        <link rel="stylesheet" href="styles.css">
+        <script src="terminal.js"></script>
+    </head>
+    <body onload="Terminal.init();">
+        <div id="terminalWindow">
+            <div id="terminalHeader">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+            </div>
+            <div id="terminalContent">
+                <noscript>
+                    <span>Please enable the execution of JavaScript in your browser for the terminal to work.</span>
+                </noscript>
+                <span id="terminalBuffer"></span>
+                <span id="terminalCursor">&nbsp;</span>
+                <input id="terminalInput" type="text" name="command" value="" autocomplete="off"/>
+            </div>
+        </div>
+    </body>
+</html>

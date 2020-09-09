@@ -1,0 +1,56 @@
+body {
+    background-color: gray;
+  }
+
+#terminalWindow {
+  width: 50%;
+  border: 0.2em solid #f1f1f1;
+  background-color: #f1f1f1;
+  border-top-left-radius: 0.5em;
+  border-top-right-radius: 0.5em;
+}
+
+#terminalWindow #terminalHeader {
+  padding: 0.65em;
+  background: #f1f1f1;
+}
+
+#terminalWindow #terminalHeader .dot {
+  height: 0.75em;
+  width: 0.75em;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+#terminalWindow #terminalHeader .dot.red {
+  background:#ED594A;
+}
+#terminalWindow #terminalHeader .dot.yellow {
+  background:#FDD800;
+}
+#terminalWindow #terminalHeader .dot.green {
+  background:#5AC05A;
+}
+
+#terminalWindow #terminalContent {
+  height: 25em;
+  padding-bottom: 0.25em;
+  margin: 0 0 0.25em 0.25em;
+  background-color: black;
+  font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+  color: rgb(0, 255, 0);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  overflow-wrap: break-word;
+}
+
+#terminalWindow #terminalContent #terminalCursor {
+  background: rgb(0, 255, 0);
+}
+  
+#terminalWindow #terminalContent #terminalInput {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
