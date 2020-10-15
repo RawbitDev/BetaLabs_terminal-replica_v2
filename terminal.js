@@ -137,7 +137,8 @@ class Terminal {
 		}
 		await Terminal.sleep(1000);
 		*/
-		Terminal.newLine();^	}
+		Terminal.newLine();
+	}
 	//Read a linked file
 	static loadFile(filePath) {
 		var result = null;
