@@ -1,4 +1,10 @@
 class Terminal {
+	
+	//General settings
+	static header = "BetaLabsOS [Version 2.0.1] (c) 2020 MrRawbit";
+	static prefix = "root@BetaLabs.io:~#";
+	static startupPath = "./startup.txt";
+	
     static init() {
         Terminal.contentNode = document.getElementById("terminalContent");
         Terminal.cursorNode = document.getElementById("terminalCursor");
@@ -51,9 +57,8 @@ class Terminal {
             Terminal.inputNode.focus();
         });
         Terminal.inputNode.focus();
-
-        Terminal.println("As with many techniques in JavaScript, it’s mainly a matter of taste when deciding which one to use. However, be aware of the speed impacts of the string-to-array conversion as well as the compatibility issues of the bracket notation.");
-        Terminal.println("Hallo mein Name ist Test");
+		//Boot
+		Terminal.startup();
     }
 
     static rawPrint(text) {
@@ -78,21 +83,19 @@ class Terminal {
         Terminal.contentNode.scrollTop = Terminal.contentNode.scrollHeight;
     };
 
-    static sleep(sec) {
-        return new Promise(resolve => setTimeout(resolve, sec * 1000)); //Wait x seconds
+    static sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms)); //Wait x millis
     }
 
     static print(text) {
         let textBuffer = "";
-        for (let i = 0; i < text.length; ++i) {
-            let c = text.charAt(i);
+		for (let c of text) {
             if (c === '\n') {
                 Terminal.rawPrint(textBuffer);
                 textBuffer = "";
                 Terminal.newLine();
-            }
-            else {
-                textBuffer += c;
+            } else {
+                textBuffer += c;	
             }
         }
         if (textBuffer !== "") {
@@ -100,13 +103,51 @@ class Terminal {
         }
         Terminal.updateScrollPos();
     };
+	
+	static async write(text) {
+		for (let c of text) {
+			Terminal.print(c);
+			await Terminal.sleep(25);
+		}
+	}
 
     static println(text) {
         Terminal.print(text + '\n');
+    };
+	
+	static writeln(text) {
+        Terminal.write(text + '\n');
     };
 
     static execute(input) {
         console.log("Terminal.execute(\"" + input + "\");");
     }
+	
+	//Output the startup message
+	static async startup() {
+		await Terminal.sleep(2000);
+		await Terminal.write(Terminal.header);
+		await Terminal.sleep(1000);
+		/*
+		fileData = Terminal.loadFile(Terminal.startupPath); //Get content of the startup file
+		var lines = fileData.split('\n'); //Split it in its lines
+		for (var line=0; line<lines.length; line++) { //Print every line by line with a delay between them
+			Terminal.println(lines[line]);
+			await Terminal.sleep(200);
+		}
+		await Terminal.sleep(1000);
+		*/
+		Terminal.newLine();^	}
+	//Read a linked file
+	static loadFile(filePath) {
+		var result = null;
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", filePath, false);
+		xmlhttp.send();
+		if (xmlhttp.status === 200) {
+			result = xmlhttp.responseText;
+		}
+		return result;
+	}
 
 }
