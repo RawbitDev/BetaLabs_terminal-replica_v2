@@ -12,6 +12,7 @@ class Terminal {
         Terminal.bufferNode = document.getElementById("terminalBuffer");
         Terminal.history = new Array("");
         Terminal.historyPos = 0;
+        Terminal.locks = 0;
         Terminal.inputNode.addEventListener("focus", function() {
             Terminal.cursorEvent = setInterval(function() { 
                 if(Terminal.cursorNode.hidden) {
@@ -63,9 +64,17 @@ class Terminal {
 
     static rawPrint(text) {
         let node = document.createElement("span");
-        let textnode = document.createTextNode(text);
-        node.appendChild(textnode);
+        let textNode = document.createTextNode(text);
+        node.appendChild(textNode);
         Terminal.contentNode.insertBefore(node, Terminal.bufferNode);
+    };
+
+    static rawReprint(text) {
+        let node = Terminal.bufferNode.previousSibling;
+        while(node.tagName.toLowerCase() !== 'span') {
+            node = node.previousSibling;
+        }
+        node.textContent = text;
     };
 
     static updateBuffer() {
@@ -81,6 +90,21 @@ class Terminal {
 
     static updateScrollPos() {
         Terminal.contentNode.scrollTop = Terminal.contentNode.scrollHeight;
+    };
+
+    static lockInput() {
+        ++Terminal.locks;
+        if(Terminal.locks) {
+            Terminal.inputNode.disabled = true;
+        }
+    };
+
+    static unlockInput() {
+        --Terminal.locks;
+        if(!Terminal.locks) {
+            Terminal.inputNode.disabled = false;
+            Terminal.inputNode.focus();
+        }
     };
 
     static sleep(ms) {
@@ -103,20 +127,48 @@ class Terminal {
         }
         Terminal.updateScrollPos();
     };
+
+    static reprint(text) {
+        let textBuffer = "";
+        for (let i = 0; i < text.length; ++i) {
+            let c = text.charAt(i);
+            if (c === '\n') {
+                Terminal.rawReprint(textBuffer);
+                Terminal.newLine();
+                let remainingText = text.substring(i+1);
+                if (remainingText !== "") {
+                    Terminal.print(textBuffer);
+                }
+            } else {
+                textBuffer += c;
+            }
+        }
+        if (textBuffer !== "") {
+            Terminal.rawReprint(textBuffer);
+        }
+        Terminal.updateScrollPos();
+    };
 	
 	static async write(text) {
-		for (let c of text) {
-			Terminal.print(c);
+        Terminal.lockInput();
+        for (let i = 0; i < text.length; ++i) {
+            let out = text.substring(0, i+1);
+            if(!i) {
+                Terminal.print(out);
+            } else {
+                Terminal.reprint(out);
+            }
 			await Terminal.sleep(25);
 		}
+        Terminal.unlockInput();
 	}
 
     static println(text) {
         Terminal.print(text + '\n');
     };
 	
-	static writeln(text) {
-        Terminal.write(text + '\n');
+	static async writeln(text) {
+        await Terminal.write(text + '\n');
     };
 
     static execute(input) {
@@ -125,11 +177,35 @@ class Terminal {
 	
 	//Output the startup message
 	static async startup() {
-		await Terminal.sleep(2000);
-		await Terminal.write(Terminal.header);
-		await Terminal.sleep(1000);
+        Terminal.lockInput();
+        Terminal.print("Initializing... [0%");
+        for (let i = 0; i <= 100; ++i) {
+            let progress = "";
+            for (let j = 0; j < 20; ++j) {
+                if(j < (i/5)) {
+                    progress += "=";
+                } else {
+                    if(progress.endsWith("=")) {
+                        progress += ">";
+                    }
+                    progress += "\u00A0";
+                }
+            }
+            Terminal.reprint("Initializing... [" + progress + "] (" + i + "%)");
+            await Terminal.sleep(15);
+        }
+        Terminal.reprint("Starting.");
+        await Terminal.sleep(500);
+        Terminal.reprint("Starting..");
+        await Terminal.sleep(500);
+        Terminal.reprint("Starting...");
+        await Terminal.sleep(500);
+        Terminal.reprint(" ");
+        await Terminal.write(Terminal.header);
+        await Terminal.sleep(1000);
+        Terminal.newLine();
 		/*
-		fileData = Terminal.loadFile(Terminal.startupPath); //Get content of the startup file
+		let fileData = Terminal.loadFile(Terminal.startupPath); //Get content of the startup file
 		var lines = fileData.split('\n'); //Split it in its lines
 		for (var line=0; line<lines.length; line++) { //Print every line by line with a delay between them
 			Terminal.println(lines[line]);
@@ -137,7 +213,7 @@ class Terminal {
 		}
 		await Terminal.sleep(1000);
 		*/
-		Terminal.newLine();
+        Terminal.unlockInput();
 	}
 	//Read a linked file
 	static loadFile(filePath) {
