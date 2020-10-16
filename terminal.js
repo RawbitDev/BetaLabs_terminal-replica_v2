@@ -1,7 +1,7 @@
 class Terminal {
 	
 	//General settings
-	static header = "BetaLabsOS [Version 2.0.1] (c) 2020 MrRawbit";
+	static header = "BetaLabsOS [Version 2.0.3] (c) 2020 RawbitDev";
 	static prefix = "root@BetaLabs.io:~# ";
 	
     static async init() {
@@ -19,8 +19,8 @@ class Terminal {
 
     static registerEvents() {
         this.inputNode.addEventListener("focus", function() {
-            this.cursorEvent = setInterval(function() {
-                this.cursorNode.hidden = !this.cursorNode.hidden;
+            Terminal.cursorEvent = setInterval(function() {
+                Terminal.cursorNode.hidden = !Terminal.cursorNode.hidden;
             }, 500);
         });
         this.inputNode.addEventListener("input", function() {
@@ -28,35 +28,35 @@ class Terminal {
         });
         this.inputNode.addEventListener("keyup", function(event) {
             if (event.keyCode === 13) { // Return
-                let cmd = this.inputNode.value;
+                let cmd = Terminal.inputNode.value;
                 Terminal.println(cmd);
-                if(this.history[this.history.length-1] !== cmd) {
-                    this.history.push(cmd);
+                if(Terminal.history[Terminal.history.length-1] !== cmd) {
+                    Terminal.history.push(cmd);
                 }
-                this.historyPos = this.history.length;
-                this.inputNode.value = "";
-                this.bufferNode.innerHTML = "";
+                Terminal.historyPos = Terminal.history.length;
+                Terminal.inputNode.value = "";
+                Terminal.bufferNode.innerHTML = "";
                 Terminal.execute(cmd);
-            } else if (this.history.length > 1 && (event.keyCode === 38 || event.keyCode === 40)) {
-                if (event.keyCode === 38 && this.historyPos > 1) { // Arrow key up
-                    this.inputNode.value = this.history[--this.historyPos];
-                } else if (event.keyCode === 40 && this.historyPos < this.history.length) { // Arrow key down
-                    if(this.historyPos === this.history.length-1) {
-                        this.inputNode.value = this.history[0];
-                        this.historyPos = this.history.length;
+            } else if (Terminal.history.length > 1 && (event.keyCode === 38 || event.keyCode === 40)) {
+                if (event.keyCode === 38 && Terminal.historyPos > 1) { // Arrow key up
+                    Terminal.inputNode.value = Terminal.history[--Terminal.historyPos];
+                } else if (event.keyCode === 40 && Terminal.historyPos < Terminal.history.length) { // Arrow key down
+                    if(Terminal.historyPos === Terminal.history.length-1) {
+                        Terminal.inputNode.value = Terminal.history[0];
+                        Terminal.historyPos = Terminal.history.length;
                     } else {
-                        this.inputNode.value = this.history[++this.historyPos];
+                        Terminal.inputNode.value = Terminal.history[++Terminal.historyPos];
                     }
                 }
                 Terminal.updateBuffer();
             }
         });
         this.inputNode.addEventListener("blur", function() {
-            clearInterval(this.cursorEvent);
-            this.cursorNode.hidden = false;
+            clearInterval(Terminal.cursorEvent);
+            Terminal.cursorNode.hidden = false;
         });
         document.getElementById("terminalWindow").addEventListener("click", function() {
-            this.inputNode.focus();
+            Terminal.inputNode.focus();
         });
     }
 
@@ -69,10 +69,12 @@ class Terminal {
 
     static rawReprint(text) {
         let node = this.bufferNode.previousSibling;
-        while(node.tagName.toLowerCase() !== 'span') {
-            node = node.previousSibling;
-        }
-        node.textContent = text.replace(/ /g, "\u00A0");
+        try {
+            while (node.tagName.toLowerCase() !== "span") {
+                node = node.previousSibling;
+            }
+            node.textContent = text.replace(/ /g, "\u00A0");
+        } catch (ignore) {}
     };
 
     static updateBuffer() {
@@ -170,40 +172,38 @@ class Terminal {
     };
 
 	static clear() {
-
+	    let nodes = this.contentNode.childNodes;
+        for (let i = nodes.length-1; i >= 0; --i) {
+            if(nodes[i].nodeType !== 3) {
+                let tag = nodes[i].tagName.toLowerCase();
+                if((tag === "span" && !nodes[i].id) || tag === "br") {
+                    this.contentNode.removeChild(nodes[i]);
+                }
+            }
+        }
     }
 
     static execute(input) {
-        console.log("Terminal.execute(\"" + input + "\");");
-        this.print(this.prefix);
+        try {
+            console.log("Terminal.execute(\"" + input + "\");");
+            //To be continued...
+        } catch (e) {
+            this.println("ERROR: " + e.message + "!");
+        } finally {
+            this.print(this.prefix);
+        }
     }
 	
 	//Output the startup message
 	static async startup() {
         this.lockInput();
-        this.print("Initializing... [0%");
-        for (let i = 0; i <= 100; ++i) {
-            let progress = "";
-            for (let j = 0; j < 20; ++j) {
-                if(j < (i/5)) {
-                    progress += "=";
-                } else {
-                    if(progress.endsWith("=")) {
-                        progress += ">";
-                    }
-                    progress += " ";
-                }
-            }
-            this.reprint("Initializing... [" + progress + "] (" + i + "%)");
-            await this.sleep(10);
-        }
-        this.reprint("Starting.");
+        this.print("Starting.");
         await this.sleep(500);
         this.reprint("Starting..");
         await this.sleep(500);
         this.reprint("Starting...");
         await this.sleep(500);
-        this.reprint(" ");
+        this.clear();
         await this.write(this.header);
         await this.sleep(1000);
         this.newLine();
@@ -218,10 +218,43 @@ class Terminal {
         this.println(" | |_) |  __/ || (_| | |___| (_| | |_) \\__ \\_| | (_) |");
         await this.sleep(200);
         this.println(" |____/ \\___|\\__\\__,_|______\\__,_|_.__/|___(_)_|\\___/ ");
-		await this.sleep(1000);
         this.newLine();
+		await this.sleep(1000);
+        this.print("Initializing... [0%");
+        for (let i = 0; i <= 100; ++i) {
+            let progress = "";
+            for (let j = 0; j < 20; ++j) {
+                if(j < (i/5)) {
+                    progress += "=";
+                } else {
+                    if(progress.endsWith("=")) {
+                        progress += ">";
+                    }
+                    progress += " ";
+                }
+            }
+            this.reprint("Initializing... [" + progress + "] (" + i + "%)");
+            await this.sleep(15);
+        }
+        this.reprint("Done!");
+        await this.sleep(1000);
+        this.reprint(this.prefix);
         this.unlockInput();
-        this.print(this.prefix);
 	}
+
+	static redButton() {
+        //TODO
+    }
+
+    static yellowButton() {
+        if(!this.locks) {
+            this.clear();
+            this.print(this.prefix);
+        }
+    }
+
+    static greenButton() {
+        //TODO
+    }
 
 }
